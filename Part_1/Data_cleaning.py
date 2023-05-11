@@ -14,6 +14,7 @@ class Data_cleaning:
     # es wird eine Liste erstellt mit den Daten im Ordner original_data
     # anschließend werden alle Bilder auf die Dimension überprüft und die Bilder welche der angegeben Dimension
     # entsprechen in den Ordner cleaned_data gelegt
+    # key_folder = 'no_defect' oder key_folder = 'pitting' legt fest auf welche Daten zugegriffen wird.
     def clean_data(cls, key_folder) -> None:
         print('------ Start Data Cleaning: ------')
 
