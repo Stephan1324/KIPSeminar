@@ -10,6 +10,10 @@ class Data_cleaning:
 
 
     @classmethod
+    # Methode zum Bereinigen der Daten
+    # es wird eine Liste erstellt mit den Daten im Ordner original_data
+    # anschließend werden alle Bilder auf die Dimension überprüft und die Bilder welche der angegeben Dimension
+    # entsprechen in den Ordner cleaned_data gelegt
     def clean_data(cls, key_folder) -> None:
         print('------ Start Data Cleaning: ------')
 
@@ -25,6 +29,7 @@ class Data_cleaning:
         return None
 
     @classmethod
+    # Methode erstellt eine Liste mit den Namen aller Dateien in einem Ordner
     def make_image_list(cls, path: str = CONFIG_GLOBAL.PATH_ORIGINAL_DATA_FOLDER) -> list:
         file_list = os.listdir(path)
         print('\n   -------------------------------------')
@@ -33,6 +38,7 @@ class Data_cleaning:
         return file_list
 
     @classmethod
+    # Methode zum einlesen der Bilder und dem Bestimmen der Dimension
     def read_image_dimension(cls, image_name: list, path: str =CONFIG_GLOBAL.PATH_ORIGINAL_DATA_FOLDER):
         img = cv2.imread(path + image_name, cv2.IMREAD_COLOR)
         dimension = img.shape
@@ -40,6 +46,8 @@ class Data_cleaning:
         return dimension
 
     @classmethod
+    # Methode erstellt Liste mit Bilder die der angegeben Dimension entsprechen,
+    # sowie eine Liste mit den Bildern die nicht der angegebenen Dimension entsprechen
     def get_image_dimension(cls,key_folder, list_image_names: list, length: int = 150, width: int = 150,
                             channels: int = 3) -> tuple:
         arr = np.zeros((length, width, channels))
@@ -53,6 +61,8 @@ class Data_cleaning:
         return images_of_same_dimension, images_of_different_dimension
 
     @classmethod
+    # Methode kopierte die Bilder in der Liste aus einem angegebenen Ordner in einen Zielordner
+    # in diesem Fall von original_data zu cleaned_data
     def copy_files_from_to(cls, files_to_copy: list, src_folder: str, dest_folder: str) -> None:
         print('\n   -------------------------------------')
         print(' Copy files of the same Size to cleaned data folder:')
