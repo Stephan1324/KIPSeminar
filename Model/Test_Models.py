@@ -11,7 +11,8 @@ class Test_Models:
 
         # Baseline Modell aus VL
         self.baseline = tf.keras.models.Sequential([
-            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(self.img_height, self.img_width, self.img_channels)),
+            tf.keras.layers.Conv2D(32, (3, 3), activation='relu',
+                                   input_shape=(self.img_height, self.img_width, self.img_channels)),
             tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.MaxPooling2D((2, 2)),
@@ -25,10 +26,11 @@ class Test_Models:
 
         # Modell 1
         # Test aus Internet
-        self.model_1= tf.keras.models.Sequential([
+        self.model_1 = tf.keras.models.Sequential([
             # Note the input shape is the desired size of the image 200x200 with 3 bytes color
             # This is the first convolution
-            tf.keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(self.img_height, self.img_width, self.img_channels)),
+            tf.keras.layers.Conv2D(16, (3, 3), activation='relu',
+                                   input_shape=(self.img_height, self.img_width, self.img_channels)),
             tf.keras.layers.MaxPooling2D(2, 2),
             # The second convolution
             tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),

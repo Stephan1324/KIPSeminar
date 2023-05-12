@@ -1,14 +1,15 @@
+import os
+
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-import cv2
-import os
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 from Model.Test_Models import Test_Models
-from sklearn.preprocessing import LabelEncoder
 
 
 class Model:
@@ -29,7 +30,7 @@ class Model:
         self.y_test = []
 
     # Funktion zum einlesen der Daten und Train/Test Split
-    def split(self, test_size=0.2):
+    def split(self, test_size=0.2, normalize=False):
         print('---- Train/Test Split: ----')
 
         folder_path = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
@@ -59,15 +60,24 @@ class Model:
                             labels.append(class_label)
             return np.array(x_total), np.array(labels)
 
-        x_total, labels = load_classes(class_labels, folder_path)
+        x_images, labels = load_classes(class_labels, folder_path)
 
-        # Encode the labels as integers
+        # normalisieren der Daten der Bilder wenn normalize=True
+        if normalize:
+            print('     ..... images normalized')
+            x_images = x_images.astype('float32')
+            mean = x_images.mean()
+            std = x_images.std()
+            x_images = (x_images - mean) / std
+            x_images = (x_images - x_images.min()) / (x_images.max() - x_images.min())
+
         encoder = LabelEncoder()
         y_encoded = encoder.fit_transform(labels)
 
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(x_total, y_encoded, test_size=test_size, random_state=42)
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(x_images, y_encoded,
+                                                                                test_size=test_size, random_state=42,
+                                                                                stratify=y_encoded)
         print('     ..... DONE!')
-
 
     # Funktion zum Aufbau des Models
     def model_building(self):
@@ -90,7 +100,7 @@ class Model:
     # Funktion zum trainieren des Modesll
     def fit(self):
         print('---- Training: ----')
-        self.history = self.model.fit(x=self.x_train,y=self.y_train, epochs=self.epochs, batch_size=self.batch_size,
+        self.history = self.model.fit(x=self.x_train, y=self.y_train, epochs=self.epochs, batch_size=self.batch_size,
                                       validation_data=(self.x_test, self.y_test))
 
         # Acc
@@ -122,7 +132,6 @@ class Model:
         print("Predicted=%s" % (pred_prob))
         print("Wahres Label: ", img_test_label)
         plt.show()
-
 
     @classmethod
     # Methode zum erstellen des train/validation plots
@@ -174,7 +183,6 @@ class Model:
                          color="white" if cm_matrix[i, j] > thresh else "black")
 
         plt.show()
-
 
     @classmethod
     # Methode zum erstellen der ROC Kurve
