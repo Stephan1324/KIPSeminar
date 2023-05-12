@@ -20,7 +20,7 @@ class Model:
         self.batch_size = batch_size
         self.img_height = 150
         self.img_width = 150
-        self.img_channels = 3
+        self.img_channels = 1
         self.epochs = epochs
         self.data_directory = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
         self.x_train = []
@@ -50,9 +50,9 @@ class Model:
                         if img_path.endswith('.png'):
                             img = cv2.imread(img_path)
                             # einlesen als Graustufen Bild
-                            # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                             # einlesen als HSV Bild:
-                            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+                            # img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
                             img = cv2.resize(img, (self.img_height, self.img_width))
                             img = img / 255.0
                             x_total.append(np.asarray(img).reshape(self.img_height, self.img_width, self.img_channels))
@@ -73,7 +73,6 @@ class Model:
     def model_building(self):
         print('---- Model Building: ----')
         # ---------- Model building ----------
-
 
         # Das entsprechende Modell, welches über model_type ausgewählt wurde wird gewählt
         model = Test_Models(img_height=self.img_height, img_width=self.img_width, img_channels=self.img_channels)
@@ -113,31 +112,17 @@ class Model:
         print('     ..... DONE!')
 
     # Funktion zu Vorhersage auf einen einzelnes Bild
-    # TODO: !!! funktioniert aktuell nicht !!! ->einsetzen der Funktion aus Übung2
-    def predict(self, img_path):
-        test_image_path = img_path
-        test_image = tf.keras.preprocessing.image.load_img(
-            test_image_path,
-            color_mode='grayscale',
-            target_size=(self.img_height, self.img_width),
-        )
-        test_image_array = tf.keras.preprocessing.image.img_to_array(test_image)
-        test_image_array = tf.expand_dims(test_image_array, 0)
-
-        # Make a prediction on the test image
-        predictions = self.model.predict(test_image_array)
-        predicted_label = np.argmax(predictions[0])
-
-        # Display the true label and predicted label
-        class_names = self.class_names
-        true_label = "pitting"  # Replace with the true label of the test image
-        print(f"True label: {true_label}")
-        print(f"Predicted label: {class_names[predicted_label]}")
-
-        # Display the test image
-        plt.imshow(test_image, cmap="gray")
-        plt.axis("off")
+    def predict(self, img_number):
+        import matplotlib.pyplot as plt
+        img_num = img_number
+        img_test = self.x_test[img_num]
+        img_test_label = self.y_test[img_num]
+        plt.imshow(img_test.reshape(150, 150), cmap='gray')
+        pred_prob = self.model.predict(tf.expand_dims(img_test, axis=0))
+        print("Predicted=%s" % (pred_prob))
+        print("Wahres Label: ", img_test_label)
         plt.show()
+
 
     @classmethod
     # Methode zum erstellen des train/validation plots
