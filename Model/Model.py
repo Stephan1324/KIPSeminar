@@ -16,7 +16,7 @@ class Model:
 
     # Initialisierung der Klasse Model
     # model_type gibt an, welches Modell trainiert werden soll -> siehe klasse Test_Models
-    def __init__(self, model_type='baseline', batch_size: int=32, epochs: int=10):
+    def __init__(self, model_type='baseline', batch_size: int = 32, epochs: int = 10):
         self.model_type = model_type
         self.batch_size = batch_size
         self.img_height = 150
@@ -38,12 +38,13 @@ class Model:
         class_labels = ['KGT_noDefect_simplified', 'KGT_pitting_simplified']
 
         # Daten laden
-        x_images, labels = Model.load_classes(hsv=True, class_labels=class_labels, folder_path=folder_path, img_height=self.img_height, img_width=self.img_width, img_channels=self.img_channels)
+        x_images, labels = Model.load_classes(hsv=True, class_labels=class_labels, folder_path=folder_path,
+                                              img_height=self.img_height, img_width=self.img_width,
+                                              img_channels=self.img_channels)
 
         # normalisieren der Daten der Bilder wenn normalize=True
         if normalize:
             Model.normalize_data(x_images=x_images)
-
 
         encoder = LabelEncoder()
         y_encoded = encoder.fit_transform(labels)
@@ -212,5 +213,3 @@ class Model:
                         x_total.append(np.asarray(img).reshape(img_height, img_width, img_channels))
                         labels.append(class_label)
         return np.array(x_total), np.array(labels)
-
-
