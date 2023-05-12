@@ -20,7 +20,7 @@ class Model:
         self.batch_size = batch_size
         self.img_height = 150
         self.img_width = 150
-        self.img_channels = 1
+        self.img_channels = 3
         self.epochs = epochs
         self.data_directory = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
         self.x_train = []
@@ -50,9 +50,9 @@ class Model:
                         if img_path.endswith('.png'):
                             img = cv2.imread(img_path)
                             # einlesen als Graustufen Bild
-                            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                            # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                             # einlesen als HSV Bild:
-                            # img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+                            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
                             img = cv2.resize(img, (self.img_height, self.img_width))
                             img = img / 255.0
                             x_total.append(np.asarray(img).reshape(self.img_height, self.img_width, self.img_channels))
@@ -117,7 +117,7 @@ class Model:
         img_num = img_number
         img_test = self.x_test[img_num]
         img_test_label = self.y_test[img_num]
-        plt.imshow(img_test.reshape(150, 150), cmap='gray')
+        plt.imshow(img_test.reshape(150, 150, 3))
         pred_prob = self.model.predict(tf.expand_dims(img_test, axis=0))
         print("Predicted=%s" % (pred_prob))
         print("Wahres Label: ", img_test_label)
