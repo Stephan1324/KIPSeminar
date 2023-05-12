@@ -4,7 +4,7 @@ import tensorflow as tf
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
-from Test_Models import Test_Models
+from Model.Test_Models import Test_Models
 
 
 class Model:
@@ -60,9 +60,12 @@ class Model:
         model = Test_Models(img_height=self.img_height, img_width=self.img_width, img_channels=self.img_channels)
         self.model = model.get_model(self.model_type)
 
-        self.model.compile(optimizer='adam',
-                           loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                           metrics=['accuracy'])
+        self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+        # Anpassung für Modell 1
+        # self.model.compile(optimizer='adam',
+        #                    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        #                    metrics=['accuracy'])
 
         # Funktion erstellt ein summary des Modells
         # self.model.summary()
@@ -165,7 +168,7 @@ class Model:
     # Methode zum erstellen der ROC Kurve
     def create_roc_curve(cls, test_labels, test_probabilities):
         # erstellen von positive rate, true positive rate and threshold
-        fpr, tpr, threshold = roc_curve(test_labels, test_probabilities[:, 1])
+        fpr, tpr, threshold = roc_curve(test_labels, test_probabilities[:, 0])
 
         # berechnen der ROC Kurve über die AUC
         roc_auc = auc(fpr, tpr)

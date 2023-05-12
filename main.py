@@ -6,7 +6,7 @@ if __name__ == "__main__":
     # Data_cleaning.clean_data('no_defect')
 
     # erster Ansatz mit schlechtem Modell zum trainieren
-    model_instance = Model(model_type='baseline')
+    model_instance = Model(model_type='baseline', epochs=10, batch_size=32)
     model_instance.split(test_size=0.2)
     model_instance.model_building()
     model_instance.fit()
