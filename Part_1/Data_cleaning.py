@@ -1,13 +1,13 @@
 import os
-import cv2
 import shutil
+
+import cv2
 import numpy as np
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 
 
 class Data_cleaning:
-
 
     @classmethod
     # Methode zum Bereinigen der Daten
@@ -19,7 +19,8 @@ class Data_cleaning:
         print('------ Start Data Cleaning: ------')
 
         image_list = Data_cleaning.make_image_list(CONFIG_GLOBAL.PATH_DICT_ORIGINAL[key_folder])
-        images_of_same_dimension, images_of_different_dimension = Data_cleaning.get_image_dimension(list_image_names=image_list, key_folder=key_folder)
+        images_of_same_dimension, images_of_different_dimension = Data_cleaning.get_image_dimension(
+            list_image_names=image_list, key_folder=key_folder)
 
         print('\n   -------------------------------------')
         print(" Images of same dimension : ", '\n    ', str(images_of_same_dimension))
@@ -40,7 +41,7 @@ class Data_cleaning:
 
     @classmethod
     # Methode zum einlesen der Bilder und dem Bestimmen der Dimension
-    def read_image_dimension(cls, image_name: list, path: str =CONFIG_GLOBAL.PATH_ORIGINAL_DATA_FOLDER):
+    def read_image_dimension(cls, image_name: list, path: str = CONFIG_GLOBAL.PATH_ORIGINAL_DATA_FOLDER):
         img = cv2.imread(path + image_name, cv2.IMREAD_COLOR)
         dimension = img.shape
         print('     ', dimension)
@@ -49,13 +50,14 @@ class Data_cleaning:
     @classmethod
     # Methode erstellt Liste mit Bilder die der angegeben Dimension entsprechen,
     # sowie eine Liste mit den Bildern die nicht der angegebenen Dimension entsprechen
-    def get_image_dimension(cls,key_folder, list_image_names: list, length: int = 150, width: int = 150,
+    def get_image_dimension(cls, key_folder, list_image_names: list, length: int = 150, width: int = 150,
                             channels: int = 3) -> tuple:
         arr = np.zeros((length, width, channels))
         images_of_same_dimension = []
         images_of_different_dimension = []
         for x in list_image_names:
-            if Data_cleaning.read_image_dimension(image_name=x,path= CONFIG_GLOBAL.PATH_DICT_ORIGINAL[key_folder]) == arr.shape:
+            if Data_cleaning.read_image_dimension(image_name=x,
+                                                  path=CONFIG_GLOBAL.PATH_DICT_ORIGINAL[key_folder]) == arr.shape:
                 images_of_same_dimension.append(x)
             else:
                 images_of_different_dimension.append(x)
