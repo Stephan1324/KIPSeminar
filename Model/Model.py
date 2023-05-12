@@ -1,10 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+import cv2
+import os
 from sklearn.metrics import confusion_matrix, roc_curve, auc
+from sklearn.model_selection import train_test_split
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 from Model.Test_Models import Test_Models
+from sklearn.preprocessing import LabelEncoder
 
 
 class Model:
@@ -16,66 +20,79 @@ class Model:
         self.batch_size = batch_size
         self.img_height = 150
         self.img_width = 150
-        self.img_channels = 1
+        self.img_channels = 3
         self.epochs = epochs
         self.data_directory = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
+        self.x_train = []
+        self.y_train = []
+        self.x_test = []
+        self.y_test = []
 
     # Funktion zum einlesen der Daten und Train/Test Split
     def split(self, test_size=0.2):
-        print('---- Train/Test Spilt: ----')
-        self.train_data = tf.keras.utils.image_dataset_from_directory(
-            self.data_directory,
-            # labels='inferred',
-            color_mode='grayscale',
-            validation_split=test_size,
-            subset="training",
-            seed=123,
-            image_size=(self.img_height, self.img_width),
-            batch_size=self.batch_size)
+        print('---- Train/Test Split: ----')
 
-        self.test_data = tf.keras.utils.image_dataset_from_directory(
-            self.data_directory,
-            # labels='inferred',
-            color_mode='grayscale',
-            validation_split=test_size,
-            subset="validation",
-            seed=123,
-            image_size=(self.img_height, self.img_width),
-            batch_size=self.batch_size)
-        self.class_names = self.train_data.class_names
+        folder_path = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
 
-        print('Class names:', self.class_names)
+        class_labels = ['KGT_noDefect_simplified', 'KGT_pitting_simplified']
+
+        def load_classes(class_labels, folder_path):
+
+            # Define the data arrays
+            x_total = []
+            labels = []
+
+            for class_label in class_labels:
+                class_path = os.path.join(folder_path, class_label)
+                if os.path.isdir(class_path):
+                    for img_file in os.listdir(class_path):
+                        img_path = os.path.join(class_path, img_file)
+                        if img_path.endswith('.png'):
+                            img = cv2.imread(img_path)
+                            # einlesen als Graustufen Bild
+                            # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                            # einlesen als HSV Bild:
+                            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+                            img = cv2.resize(img, (self.img_height, self.img_width))
+                            img = img / 255.0
+                            x_total.append(np.asarray(img).reshape(self.img_height, self.img_width, self.img_channels))
+                            labels.append(class_label)
+            return np.array(x_total), np.array(labels)
+
+        x_total, labels = load_classes(class_labels, folder_path)
+
+        # Encode the labels as integers
+        encoder = LabelEncoder()
+        y_encoded = encoder.fit_transform(labels)
+
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(x_total, y_encoded, test_size=test_size, random_state=42)
         print('     ..... DONE!')
+
 
     # Funktion zum Aufbau des Models
     def model_building(self):
         print('---- Model Building: ----')
         # ---------- Model building ----------
-        AUTOTUNE = tf.data.AUTOTUNE
 
-        self.train_data = self.train_data.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-        self.test_data = self.test_data.cache().prefetch(buffer_size=AUTOTUNE)
 
         # Das entsprechende Modell, welches über model_type ausgewählt wurde wird gewählt
         model = Test_Models(img_height=self.img_height, img_width=self.img_width, img_channels=self.img_channels)
         self.model = model.get_model(self.model_type)
 
-        self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-
-        # Anpassung für Modell 1
-        # self.model.compile(optimizer='adam',
-        #                    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        #                    metrics=['accuracy'])
+        self.model.compile(optimizer='adam',
+                           loss='binary_crossentropy',
+                           metrics=['accuracy'])
 
         # Funktion erstellt ein summary des Modells
         # self.model.summary()
+        print('     ..... used model is:', self.model_type)
         print('     ..... DONE!')
 
     # Funktion zum trainieren des Modesll
     def fit(self):
         print('---- Training: ----')
-        self.history = self.model.fit(self.train_data, epochs=self.epochs, batch_size=self.batch_size,
-                                      validation_data=self.test_data)
+        self.history = self.model.fit(x=self.x_train,y=self.y_train, epochs=self.epochs, batch_size=self.batch_size,
+                                      validation_data=(self.x_test, self.y_test))
 
         # Acc
         Model.create_train_validation_plot(history=self.history, epochs=self.epochs)
@@ -86,22 +103,17 @@ class Model:
     def evaluate(self):
         print('---- Evaluation of Test Data: ----')
         # auf den Testdaten werden die Wahrscheinlichkeiten der Labels vorhergesagt
-        test_probabilities = self.model.predict(self.test_data)
-        # Labels der Vorhersage werden erstellt
-        test_predictions = np.argmax(test_probabilities, axis=-1)
-
-        test_labels = np.concatenate([y for x, y in self.test_data], axis=0)
-        test_labels = test_labels.astype(int)
+        y_pred = self.model.predict(self.x_test)
 
         # Konfusionsmatrix wird erstellt
-        Model.create_confusion_matrices(test_labels=test_labels, test_predictions=test_predictions)
+        Model.create_confusion_matrices(y_true=self.y_test, y_pred=y_pred)
 
         # ROC Kurve wird erstellt
-        Model.create_roc_curve(test_labels=test_labels, test_probabilities=test_probabilities)
+        Model.create_roc_curve(y_true=self.y_test, y_pred=y_pred)
         print('     ..... DONE!')
 
     # Funktion zu Vorhersage auf einen einzelnes Bild
-    # TODO: !!! funktioniert aktuell nicht !!!
+    # TODO: !!! funktioniert aktuell nicht !!! ->einsetzen der Funktion aus Übung2
     def predict(self, img_path):
         test_image_path = img_path
         test_image = tf.keras.preprocessing.image.load_img(
@@ -153,33 +165,35 @@ class Model:
 
     @classmethod
     # Methode zum erstellen der Konfusionsmatrix
-    def create_confusion_matrices(cls, test_labels, test_predictions):
+    def create_confusion_matrices(cls, y_true, y_pred):
         # erstellen der Konfusionsmatrix
-        cm = confusion_matrix(test_labels, test_predictions)
+        y_pred_binary = (y_pred >= 0.5).astype(int)
+        # Compute confusion matrix
+        cm_matrix = confusion_matrix(y_true, y_pred_binary)
 
-        # Plot der Konfusionsmatrix
-        plt.matshow(cm, cmap=plt.cm.RdBu)
+        # Plot confusion matrix
+        plt.imshow(cm_matrix, interpolation='nearest', cmap=plt.cm.Blues)
         plt.colorbar()
+        plt.xticks([0, 1], ['Negative', 'Positive'])
+        plt.yticks([0, 1], ['Negative', 'Positive'])
         plt.xlabel('Predicted label')
         plt.ylabel('True label')
+        plt.title('Confusion Matrix')
         plt.show()
 
     @classmethod
     # Methode zum erstellen der ROC Kurve
-    def create_roc_curve(cls, test_labels, test_probabilities):
-        # erstellen von positive rate, true positive rate and threshold
-        fpr, tpr, threshold = roc_curve(test_labels, test_probabilities[:, 0])
-
-        # berechnen der ROC Kurve über die AUC
+    def create_roc_curve(cls, y_true, y_pred):
+        fpr, tpr, thresholds = roc_curve(y_true, y_pred)
         roc_auc = auc(fpr, tpr)
 
-        # Plot der ROC curve
+        # Plot ROC Kurve
         plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
         plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
-        plt.title('Receiver operating characteristic')
+        plt.title('Receiver operating characteristic example')
         plt.legend(loc="lower right")
         plt.show()
