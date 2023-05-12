@@ -12,4 +12,4 @@ if __name__ == "__main__":
     model_instance.model_building()
     model_instance.fit()
     model_instance.evaluate()
-    model_instance.predict(img_number=60)
+    model_instance.predict_image(img_number=60)

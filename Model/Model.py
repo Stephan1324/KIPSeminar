@@ -16,7 +16,7 @@ class Model:
 
     # Initialisierung der Klasse Model
     # model_type gibt an, welches Modell trainiert werden soll -> siehe klasse Test_Models
-    def __init__(self, model_type='baseline', batch_size=32, epochs=10):
+    def __init__(self, model_type='baseline', batch_size: int=32, epochs: int=10):
         self.model_type = model_type
         self.batch_size = batch_size
         self.img_height = 150
@@ -31,45 +31,19 @@ class Model:
 
     # Funktion zum einlesen der Daten und Train/Test Split
     def split(self, test_size=0.2, normalize=False):
-        print('---- Train/Test Split: ----')
+        print('\n---- Train/Test Split: ----')
 
         folder_path = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
 
         class_labels = ['KGT_noDefect_simplified', 'KGT_pitting_simplified']
 
-        def load_classes(class_labels, folder_path):
-
-            # Define the data arrays
-            x_total = []
-            labels = []
-
-            for class_label in class_labels:
-                class_path = os.path.join(folder_path, class_label)
-                if os.path.isdir(class_path):
-                    for img_file in os.listdir(class_path):
-                        img_path = os.path.join(class_path, img_file)
-                        if img_path.endswith('.png'):
-                            img = cv2.imread(img_path)
-                            # einlesen als Graustufen Bild
-                            # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                            # einlesen als HSV Bild:
-                            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-                            img = cv2.resize(img, (self.img_height, self.img_width))
-                            img = img / 255.0
-                            x_total.append(np.asarray(img).reshape(self.img_height, self.img_width, self.img_channels))
-                            labels.append(class_label)
-            return np.array(x_total), np.array(labels)
-
-        x_images, labels = load_classes(class_labels, folder_path)
+        # Daten laden
+        x_images, labels = Model.load_classes(hsv=True, class_labels=class_labels, folder_path=folder_path, img_height=self.img_height, img_width=self.img_width, img_channels=self.img_channels)
 
         # normalisieren der Daten der Bilder wenn normalize=True
         if normalize:
-            print('     ..... images normalized')
-            x_images = x_images.astype('float32')
-            mean = x_images.mean()
-            std = x_images.std()
-            x_images = (x_images - mean) / std
-            x_images = (x_images - x_images.min()) / (x_images.max() - x_images.min())
+            Model.normalize_data(x_images=x_images)
+
 
         encoder = LabelEncoder()
         y_encoded = encoder.fit_transform(labels)
@@ -81,7 +55,7 @@ class Model:
 
     # Funktion zum Aufbau des Models
     def model_building(self):
-        print('---- Model Building: ----')
+        print('\n---- Model Building: ----')
         # ---------- Model building ----------
 
         # Das entsprechende Modell, welches über model_type ausgewählt wurde wird gewählt
@@ -99,7 +73,7 @@ class Model:
 
     # Funktion zum trainieren des Modesll
     def fit(self):
-        print('---- Training: ----')
+        print('\n---- Training: ----')
         self.history = self.model.fit(x=self.x_train, y=self.y_train, epochs=self.epochs, batch_size=self.batch_size,
                                       validation_data=(self.x_test, self.y_test))
 
@@ -110,7 +84,7 @@ class Model:
         # TODO: Abspeichern des Modells unter einem bestimmten Pfad muss eingefügt werden
 
     def evaluate(self):
-        print('---- Evaluation of Test Data: ----')
+        print('\n---- Evaluation of Test Data: ----')
         # auf den Testdaten werden die Wahrscheinlichkeiten der Labels vorhergesagt
         y_pred = self.model.predict(self.x_test)
 
@@ -122,8 +96,9 @@ class Model:
         print('     ..... DONE!')
 
     # Funktion zu Vorhersage auf einen einzelnes Bild
-    def predict(self, img_number):
-        import matplotlib.pyplot as plt
+    def predict_image(self, img_number):
+        print('\n---- Prediction on image: ----')
+        print('     ..... image no.', img_number)
         img_num = img_number
         img_test = self.x_test[img_num]
         img_test_label = self.y_test[img_num]
@@ -132,6 +107,7 @@ class Model:
         print("Predicted=%s" % (pred_prob))
         print("Wahres Label: ", img_test_label)
         plt.show()
+        print('     ..... DONE!')
 
     @classmethod
     # Methode zum erstellen des train/validation plots
@@ -200,3 +176,41 @@ class Model:
         plt.title('Receiver operating characteristic example')
         plt.legend(loc="lower right")
         plt.show()
+
+    @classmethod
+    def normalize_data(cls, x_images):
+        print('     ..... images normalized')
+        x_images = x_images.astype('float32')
+        mean = x_images.mean()
+        std = x_images.std()
+        x_images = (x_images - mean) / std
+        x_images = (x_images - x_images.min()) / (x_images.max() - x_images.min())
+
+        return x_images
+
+    @classmethod
+    def load_classes(cls, class_labels, folder_path, img_height, img_width, img_channels, hsv=False):
+        # Define the data arrays
+        x_total = []
+        labels = []
+
+        for class_label in class_labels:
+            class_path = os.path.join(folder_path, class_label)
+            if os.path.isdir(class_path):
+                for img_file in os.listdir(class_path):
+                    img_path = os.path.join(class_path, img_file)
+                    if img_path.endswith('.png'):
+                        img = cv2.imread(img_path)
+                        if hsv:
+                            # einlesen als HSV Bild
+                            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+                        else:
+                            # einlesen als Graustufen Bild
+                            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                        img = cv2.resize(img, (img_height, img_width))
+                        img = img / 255.0
+                        x_total.append(np.asarray(img).reshape(img_height, img_width, img_channels))
+                        labels.append(class_label)
+        return np.array(x_total), np.array(labels)
+
+
