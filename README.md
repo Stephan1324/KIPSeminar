@@ -1,7 +1,7 @@
 # KIPSeminar
 Git Repository für Seminar KI in der Produktion
 
-## Teil 1: Einführung in das Projekt und den Datensatz
+## Woche 1: Einführung in das Projekt und den Datensatz
 
 In der ersten Woche des Kurses geht es um eine Einführung in das Projekt und den Datensatz. Der Fokus liegt auf der Kugelgewindespindel und dem zugehörigen Datensatz, der für das Erstellen des maschinellen Lernmodells verwendet wird. Die Teilnehmer lernen, wie sie die Rohdaten sammeln, vorbereiten und bereinigen, um sie für die Analyse und das Modelltraining vorzubereiten.
 Im Rahmen der explorativen Datenanalyse wird der Datensatz genauer untersucht und verschiedene statistische Verfahren eingesetzt, um Muster und Trends in den Daten zu erkennen. Dadurch erhalten die Teilnehmer ein tiefes Verständnis für den Datensatz und können später im Kurs bessere Entscheidungen bei der Modellierung treffen.
@@ -56,4 +56,47 @@ Haben alle Daten dieselben Dimensionen?
 
 ### Aufgabe:
 Falls nicht alle Daten die selben Größen haben muss der Datensatz bereinigt werden. Schreibt eine Funktion welche die namen aller Bilder mit den falschen Größen zurückgibt. Die Entsprechenden Bilder sollten dann gelöscht werden, entweder manuell oder mit einer Funktion.
+
+## Woche 2: Klassisches Machine Learning Base Modell
+
+In diesem Kapitel geht es um den Aufbau eines grundlegenden Modells für die Fehlererkennung. Hier wird ein einfaches Basismodell implementiert. Das Ziel ist es, eine erste Basis für den Vergleich mit weiteren, komplexeren Modellen zu schaffen.
+
+### 2.1 Daten Importieren
+Überlege ob der Train Test split so sinvoll ist und was alternativ möglich wäre. Beachte dabei auch die Anzahl der Datenpunkte und die Anzahl der Klassen.
+Überlege ob die Daten normalisiert werden müssen und warum. **(-> ANMERKUNG SE: stratified Test Split)**
+Überlege ob eine Umwandlung in Graustufen sinnvoll ist und warum. 
+An dieser Stelle ist es auch ratsam mit den Parametern herumzuspielen und die Performance zur Baseline zu vergleichen.**(-> ANMERKUNG SE: HSV Farbspektrum statt Graustufen)**
+Der erste Schritt ist es, die Daten zu importieren, damit das Netzwerk trainiert werden kann. Hierzu zählt auch die Vorerarbeitung der Daten (Data Preparation) im Sinne des CRISP-DM Prozesses. 
+Hierbei werden Bilddaten aus einem angegebenen Verzeichnis geladen und in ein geeignetes Format für die Verwendung in einer KI-Anwendung gebracht. Hierzu werden die Bilddaten auf eine feste Größe skaliert, in Graustufen umgewandelt und normalisiert. Zudem werden die entsprechenden Labels für die Bilddaten definiert und in eine geeignete Datenstruktur gebracht.
+
+#### Aufgabe 2.1.1:
+
+Überlege, ob die Daten normalisiert werden müssen und warum. **(-> ANMERKUNG SE: Daten können normalisiert werden! )**
+Überlege, ob eine Umwandlung in Graustufen sinnvoll ist und warum. **(-> ANMERKUNG SE: ? )**
+An dieser Stelle ist es auch ratsam, mit den Parametern herumzuspielen und die Performance zur Baseline zu vergleichen.
+
+### 2.2 Modell Aufbau
+Das folgende Modell, welches als Basismodell dient, besteht aus einem einfachen Multilayer Perceptron (MLP) mit 3 Schichten. Jede Schicht besteht dabei aus 5 Knoten. Der Optimierungslöser, der verwendet wird, ist 'lbfgs', was für Limited-memory Broyden-Fletcher-Goldfarb-Shanno steht, ein Optimierungsalgorithmus, der auf dem Quasi-Newton-Verfahren basiert. Der Regularisierungsparameter Alpha ist auf 0,5 gesetzt.
+Man bemerke, dass es sich hierbei um eine minimale Implementierung handelt, die nur die Grundfunktionalität des Modells beinhaltet. Weitere Möglichkeiten wie mehr Schichten oder Netzwerkparameter könnten hier eingefügt werden. **(-> ANMERKUNG SE: TODO weitere Schichten und Netzwerke einfügen )**
+Des Weiteren ist es vermutlich sinnvoll über andere Netzwerkarchitekturen nachzudenken, wie z.B. Convolutional Neural Networks (CNNs). Hier reicht auch die sklearn library nicht mehr aus und es muss auf andere Frameworks zurückgegriffen werden. Ein Beispiel für ein solches Framework ist Tensorflow. Informationen zur Installation und Verwendung von Tensorflow finden sich unter https://www.tensorflow.org/install. **(-> ANMERKUNG SE: CNN implementieren)**
+
+#### Aufgabe 2.2.1:
+
+Überlegt, welche Möglichkeiten es gibt, die Architektur des Modells zu verändern. Implementiert die neue Architektur und vergleicht die Performance mit der Baseline. Hierzu könnt ihr die Funktionen aus Kapitel 2.3 nutzen. Als Hilfestellung zur Implementierung könnt ihr die Tutorials der Tensorflow library nutzen: https://www.tensorflow.org/tutorials/keras/classification
+
+### 2.3 Modell Evaluation
+
+Nachdem das Modell trainiert wurde, muss nun evaluiert werden, wie gut es funktioniert. Eine einfache Möglichkeit dafür ist, das Modell einfach auf Testdaten auszuprobieren.
+Ein solches Experiment ist allerdings nicht sonderlich aussagekräftig, da es nur auf einem Bild basiert. Zwei bessere Metriken zur evaluation Neuronaler Netze sind die Confusion Matrix und die ROC Kurve.
+
+#### Aufgabe 2.3.1:
+
+Schreibe Zwei Funktionen welche jeweils die Konfusionsmatrix und die ROC Kurve für das Modell plotten. **(-> ANMERKUNG SE: implementiert! )**
+
+#### Aufgabe 2.3.2:
+
+Das Baseline Modell wurde auf einem vereinfachten Datensatz trainiert. Erstelle ein Modell welches auf dem kompletten Datensatz trainiert wird und vergleiche die Ergebnisse.**(-> ANMERKUNG SE: was ist gemeint mit komplettem Datensatz? )**
+Nutze hierzu auch dein verbessertes Modell aus Aufgabe 2.2.1.
+Wie könnte das Modell hier weiter verbessert werden?
+
 
