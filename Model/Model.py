@@ -168,10 +168,10 @@ class Model:
     def create_confusion_matrices(cls, y_true, y_pred):
         # erstellen der Konfusionsmatrix
         y_pred_binary = (y_pred >= 0.5).astype(int)
-        # Compute confusion matrix
+        # berechnen der Konfusion matrix
         cm_matrix = confusion_matrix(y_true, y_pred_binary)
 
-        # Plot confusion matrix
+        # Plot Konfusion matrix
         plt.imshow(cm_matrix, interpolation='nearest', cmap=plt.cm.Blues)
         plt.colorbar()
         plt.xticks([0, 1], ['Negative', 'Positive'])
@@ -179,7 +179,17 @@ class Model:
         plt.xlabel('Predicted label')
         plt.ylabel('True label')
         plt.title('Confusion Matrix')
+
+        thresh = cm_matrix.max() / 2.0  # for setting the text color
+
+        for i in range(cm_matrix.shape[0]):
+            for j in range(cm_matrix.shape[1]):
+                plt.text(j, i, format(cm_matrix[i, j], 'd'),
+                         horizontalalignment="center",
+                         color="white" if cm_matrix[i, j] > thresh else "black")
+
         plt.show()
+
 
     @classmethod
     # Methode zum erstellen der ROC Kurve
