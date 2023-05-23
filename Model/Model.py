@@ -4,6 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -21,7 +22,7 @@ class Model:
         self.batch_size = batch_size
         self.img_height = 150
         self.img_width = 150
-        self.img_channels = 3
+        self.img_channels = 1
         self.epochs = epochs
         self.data_directory = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
         self.x_train = []
@@ -30,15 +31,19 @@ class Model:
         self.y_test = []
 
     # Funktion zum einlesen der Daten und Train/Test Split
-    def split(self, test_size=0.2, normalize=False):
+    def split(self, test_size=0.2, normalize=False, hsv=False):
         print('\n---- Train/Test Split: ----')
 
         folder_path = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
 
         class_labels = ['KGT_noDefect_simplified', 'KGT_pitting_simplified']
 
+        if hsv:
+            hsv = 'hsv'
+            self.img_channels = 3
+
         # Daten laden
-        x_images, labels = Model.load_classes(hsv=True, class_labels=class_labels, folder_path=folder_path,
+        x_images, labels = Model.load_classes(hsv=hsv, class_labels=class_labels, folder_path=folder_path,
                                               img_height=self.img_height, img_width=self.img_width,
                                               img_channels=self.img_channels)
 
@@ -73,10 +78,37 @@ class Model:
         print('     ..... DONE!')
 
     # Funktion zum trainieren des Modesll
-    def fit(self):
+    def fit(self, online_augmentation=True):
+
         print('\n---- Training: ----')
-        self.history = self.model.fit(x=self.x_train, y=self.y_train, epochs=self.epochs, batch_size=self.batch_size,
-                                      validation_data=(self.x_test, self.y_test))
+
+        # Funktion um Online Data augmentation zu aktivieren
+        if online_augmentation:
+            # ImageDataGenerator Einstellungen spezifizieren
+            data_generator = ImageDataGenerator(
+                rotation_range=45,  # Rotation der Bilder bis x Grad
+                width_shift_range=0.2,  # Shift images horizontally by a fraction of the total width
+                height_shift_range=0.2,  # Shift images vertically by a fraction of the total height
+                # shear_range=0.2,  # Apply shear transformation to images
+                zoom_range=0.2,  # Zoom rein/raus auf den Bilder
+                # horizontal_flip=True,  # Flip Bilder horizontal
+                # vertical_flip=True  # Flip Bilder vertikal
+            )
+
+            # Online Augmentationen generieren und trainieren
+            augmented_generator = data_generator.flow(x=self.x_train, y=self.y_train, batch_size=self.batch_size)
+            self.history = self.model.fit_generator(
+                generator=augmented_generator,
+                steps_per_epoch=len(self.x_train) // self.batch_size,  # Number of batches per epoch
+                epochs=self.epochs,
+                validation_data=(self.x_test, self.y_test)
+            )
+        else:
+            self.history = self.model.fit(x=self.x_train, y=self.y_train, epochs=self.epochs,
+                                          batch_size=self.batch_size,
+                                          validation_data=(self.x_test, self.y_test))
+
+        self.model.save(os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, 'baseline_model.h5'))
 
         # Acc
         Model.create_train_validation_plot(history=self.history, epochs=self.epochs)
@@ -103,7 +135,7 @@ class Model:
         img_num = img_number
         img_test = self.x_test[img_num]
         img_test_label = self.y_test[img_num]
-        plt.imshow(img_test.reshape(150, 150, 3))
+        plt.imshow(img_test.reshape(self.img_height, self.img_width, self.img_channels))
         pred_prob = self.model.predict(tf.expand_dims(img_test, axis=0))
         print("Predicted=%s" % (pred_prob))
         print("Wahres Label: ", img_test_label)
