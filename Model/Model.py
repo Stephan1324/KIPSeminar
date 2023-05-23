@@ -39,7 +39,6 @@ class Model:
         class_labels = ['KGT_noDefect_simplified', 'KGT_pitting_simplified']
 
         if hsv:
-            hsv = 'hsv'
             self.img_channels = 3
 
         # Daten laden
@@ -84,15 +83,16 @@ class Model:
 
         # Funktion um Online Data augmentation zu aktivieren
         if online_augmentation:
+            print('     ..... Online Augmentation!')
             # ImageDataGenerator Einstellungen spezifizieren
             data_generator = ImageDataGenerator(
                 rotation_range=45,  # Rotation der Bilder bis x Grad
                 width_shift_range=0.2,  # Shift images horizontally by a fraction of the total width
                 height_shift_range=0.2,  # Shift images vertically by a fraction of the total height
-                # shear_range=0.2,  # Apply shear transformation to images
-                zoom_range=0.2,  # Zoom rein/raus auf den Bilder
-                # horizontal_flip=True,  # Flip Bilder horizontal
-                # vertical_flip=True  # Flip Bilder vertikal
+                shear_range=0.2,  # Apply shear transformation to images
+                # zoom_range=0.2,  # Zoom rein/raus auf den Bilder
+                horizontal_flip=True,  # Flip Bilder horizontal
+                vertical_flip=True  # Flip Bilder vertikal
             )
 
             # Online Augmentationen generieren und trainieren
@@ -108,13 +108,12 @@ class Model:
                                           batch_size=self.batch_size,
                                           validation_data=(self.x_test, self.y_test))
 
-        self.model.save(os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, 'baseline_model.h5'))
+        self.model.save(os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, self.model_type + '_model.h5'))
 
-        # Acc
+        # Accurracy
         Model.create_train_validation_plot(history=self.history, epochs=self.epochs)
         print('     ..... DONE!')
 
-        # TODO: Abspeichern des Modells unter einem bestimmten Pfad muss eingefügt werden
 
     def evaluate(self):
         print('\n---- Evaluation of Test Data: ----')
@@ -129,13 +128,16 @@ class Model:
         print('     ..... DONE!')
 
     # Funktion zu Vorhersage auf einen einzelnes Bild
-    def predict_image(self, img_number):
+    def predict_image(self, img_number,hsv=True):
         print('\n---- Prediction on image: ----')
         print('     ..... image no.', img_number)
         img_num = img_number
         img_test = self.x_test[img_num]
         img_test_label = self.y_test[img_num]
-        plt.imshow(img_test.reshape(self.img_height, self.img_width, self.img_channels))
+        if hsv:
+            plt.imshow(img_test.reshape(self.img_height, self.img_width, self.img_channels))
+        else:
+            plt.imshow(img_test.reshape(150, 150), cmap='gray')
         pred_prob = self.model.predict(tf.expand_dims(img_test, axis=0))
         print("Predicted=%s" % (pred_prob))
         print("Wahres Label: ", img_test_label)
@@ -227,6 +229,11 @@ class Model:
         x_total = []
         labels = []
 
+        if hsv:
+            print('     ..... read in as hsv')
+        else:
+            print('     ..... read in as black/white')
+
         for class_label in class_labels:
             class_path = os.path.join(folder_path, class_label)
             if os.path.isdir(class_path):
@@ -241,6 +248,7 @@ class Model:
                             # einlesen als Graustufen Bild
                             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                         img = cv2.resize(img, (img_height, img_width))
+                        #plt.imshow(img.reshape(img_height, img_width, img_channels))
                         img = img / 255.0
                         x_total.append(np.asarray(img).reshape(img_height, img_width, img_channels))
                         labels.append(class_label)

@@ -77,8 +77,6 @@ class Test_Models:
             for layer in base_model.layers[-trainable_layer_count:]:
                 layer.trainable = True
 
-        print("Base model has {} layers".format(len(base_model.layers)))
-
         x = GlobalAveragePooling2D()(base_model.output)
         x = Dropout(0.5)(x)
         x = Dense(1024, activation='relu', kernel_regularizer=l2(5e-4))(x)
@@ -101,8 +99,6 @@ class Test_Models:
                 layer.trainable = False
             for layer in base_model.layers[-trainable_layer_count:]:
                 layer.trainable = True
-
-        print("Base model has {} layers".format(len(base_model.layers)))
 
         x = GlobalAveragePooling2D()(base_model.output)
         x = Dropout(0.5)(x)
