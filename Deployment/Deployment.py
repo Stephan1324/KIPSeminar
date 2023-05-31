@@ -1,16 +1,19 @@
-from tensorflow import keras
-from CONFIG_GLOBAL import CONFIG_GLOBAL
-import tensorflow as tf
 import os
+
 import cv2
 import numpy as np
+from tensorflow import keras
+
+from CONFIG_GLOBAL import CONFIG_GLOBAL
+
 
 class Video_Deployment:
     def __init__(self, model_type):
         self.model_type = model_type
 
     def load_model(self):
-        model = keras.models.load_model(os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, self.model_type + '_model.h5'))
+        model = keras.models.load_model(
+            os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, self.model_type + '_model.h5'))
         return model
 
     def normalize_window(self, window):
@@ -34,7 +37,6 @@ class Video_Deployment:
             window = self.normalize_window(window=window)
 
         return window
-
 
     def predict(self, hsv=False, normalize=True):
         model = self.load_model()
@@ -89,7 +91,7 @@ class Video_Deployment:
 
             # Display the prediction value over the window
             text = predicition_text + f' | Prediction: {prediction_value:.6f}'
-            cv2.putText(frame, text, (window_x-150, window_y - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, text_color, 2)
+            cv2.putText(frame, text, (window_x - 150, window_y - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, text_color, 2)
 
             # Display the frame with results
             cv2.imshow('Video', frame)
@@ -101,4 +103,3 @@ class Video_Deployment:
         # Release the video capture and close the window
         video.release()
         cv2.destroyAllWindows()
-

@@ -22,11 +22,11 @@ class Test_Models:
 
         # Resnet50
         self.model_resnet_50 = Test_Models.create_resnet_50(img_height=self.img_height, img_width=self.img_width,
-                                                            img_channels=self.img_channels, trainable_layer_count='all')
+                                                            img_channels=self.img_channels, trainable_layer_count=12)
 
         # VGG16
         self.model_vgg_16 = Test_Models.create_vgg16(img_height=self.img_height, img_width=self.img_width,
-                                                     img_channels=self.img_channels, trainable_layer_count='all')
+                                                     img_channels=self.img_channels, trainable_layer_count=2)
 
         # VGG16
         self.model_resnet_18 = Test_Models.create_resnet_18(img_height=self.img_height, img_width=self.img_width,
@@ -65,7 +65,7 @@ class Test_Models:
     def create_resnet_50(cls, img_height, img_width, img_channels, trainable_layer_count):
         input_tensor = Input(shape=(img_height, img_width, img_channels))
         base_model = ResNet50(include_top=False,
-                              weights=None,
+                              weights="imagenet",
                               input_tensor=input_tensor)
 
         if trainable_layer_count == "all":
@@ -77,6 +77,7 @@ class Test_Models:
             for layer in base_model.layers[-trainable_layer_count:]:
                 layer.trainable = True
 
+        # zusätzliche Layer am Schluss einfügen
         x = GlobalAveragePooling2D()(base_model.output)
         x = Dropout(0.5)(x)
         x = Dense(1024, activation='relu', kernel_regularizer=l2(5e-4))(x)
@@ -89,15 +90,15 @@ class Test_Models:
     @classmethod
     def create_vgg16(cls, img_height, img_width, img_channels, trainable_layer_count):
         input_tensor = Input(shape=(img_height, img_width, img_channels))
-        base_model = VGG16(include_top=False, weights=None, input_tensor=input_tensor)
+        base_model = VGG16(include_top=False, weights='imagenet', input_tensor=input_tensor)
 
         if trainable_layer_count == "all":
             for layer in base_model.layers:
                 layer.trainable = True
         else:
-            for layer in base_model.layers[:-trainable_layer_count]:
+            for layer in base_model.layers[:trainable_layer_count]:
                 layer.trainable = False
-            for layer in base_model.layers[-trainable_layer_count:]:
+            for layer in base_model.layers[trainable_layer_count:]:
                 layer.trainable = True
 
         x = GlobalAveragePooling2D()(base_model.output)
