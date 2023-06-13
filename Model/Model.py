@@ -8,6 +8,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from keras.callbacks import LearningRateScheduler
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 from Model.Test_Models import Test_Models
@@ -17,9 +18,11 @@ class Model:
 
     # Initialisierung der Klasse Model
     # model_type gibt an, welches Modell trainiert werden soll -> siehe klasse Test_Models
-    def __init__(self, model_type='baseline', batch_size: int = 32, epochs: int = 10):
+    def __init__(self, model_type='baseline', batch_size: int = 32, epochs: int = 10, initial_learningrate=0.01):
         self.model_type = model_type
         self.batch_size = batch_size
+        self.initial_learning_rate = initial_learningrate
+        self.lr_scheduler = LearningRateScheduler(Model.lr_schedule, verbose=1)
         self.img_height = 150
         self.img_width = 150
         self.img_channels = 1
@@ -69,7 +72,7 @@ class Model:
         self.model = model.get_model(self.model_type)
 
         # Kompilieren des Modells mit Optimizer, Verlustfunktion und Metriken
-        self.model.compile(optimizer='adam',
+        self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.initial_learning_rate),
                            loss='binary_crossentropy',
                            metrics=['accuracy'])
 
@@ -78,32 +81,50 @@ class Model:
         print('     ..... used model is:', self.model_type)
         print('     ..... DONE!')
 
-    def grid_search(self, epochs=[10, 20], batch_size=[32, 16]):
+    def grid_search(self, augmentation_factor=1, epochs=None, batch_size=None, learning_rates=None):
+        if learning_rates is None:
+            learning_rates = [0.001, 0.01]
+        if batch_size is None:
+            batch_size = [32, 16]
+        if epochs is None:
+            epochs = [10, 20]
+        print('\n---- Grid Search: ----')
         epochs = epochs
         batch_size = batch_size
+        learning_rates = learning_rates
 
         # Alle möglichen Kombinationen der Hyperparameter generieren
-        hyperparams = [(e, b) for e in epochs for b in batch_size]
+        hyperparams = [(e, b, lr) for e in epochs for b in batch_size for lr in learning_rates]
 
         # Listen zum Speichern der Ergebnisse
         accuracies = []
         val_accuracies = []
 
         # Für jede Hyperparameter-Kombination ein neues Modell trainieren und mit pickle abspeichern
-        for i, (e, b) in enumerate(hyperparams):
+        for i, (e, b, lr) in enumerate(hyperparams):
             self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
+            # Setze den Lernratenwert im Optimizer
+            self.model.optimizer.learning_rate.assign(lr)
+
+            augmented_x_train, augmented_y_train = Model.augment_data(self.x_train, self.y_train,
+                                                                      augmentation_factor=augmentation_factor)
             # Trainiere das Modell
-            self.model.fit(self.x_train, self.y_train, epochs=e, batch_size=b,
+            self.model.fit(augmented_x_train, augmented_y_train, epochs=e, batch_size=b,
                            validation_data=(self.x_test, self.y_test))
 
-            model_name = f"_model_{e}_{b}.h5"
+            model_name = f"_model_{e}_{b}_{lr}.h5"
             self.model.save(
                 os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, self.model_type + model_name))
             accuracy = self.model.history.history['accuracy']
             val_accuracy = self.model.history.history['val_accuracy']
             accuracies.append(accuracy)
             val_accuracies.append(val_accuracy)
+            print('     Number: ' + str(i))
+            print('     ..... Epochs: ' + str(e))
+            print('     ..... Batchsize: ' + str(b))
+            print('     ..... Learningrate: ' + str(lr))
+            print('     ..... ' + self.model_type + f'_model_{e}_{b}_{lr}.h5' + ' Accuracy: ' + str(accuracy))
 
         # Konvertiere Listen in NumPy-Arrays für einfachere Visualisierung
         accuracies = np.array(accuracies)
@@ -111,15 +132,21 @@ class Model:
 
         # Plotte die Ergebnisse der Genauigkeit
         plt.figure(figsize=(10, 6))
-        for i, (e, b) in enumerate(hyperparams):
-            plt.plot(range(1, e + 1), val_accuracies[i], label=f'Epochs: {e}, Batch Size: {b}')
+        for i, (e, b, lr) in enumerate(hyperparams):
+            plt.plot(range(1, e + 1), val_accuracies[i], label=f'Epochs: {e}, Batch Size: {b}, Learning Rate: {lr}')
         plt.xlabel('Epochs')
         plt.ylabel('Accuracy')
         plt.title(f'Accuracy Results of Grid Search for Model: {self.model_type}')
         plt.legend()
         plt.show()
 
-    # Funktion zum trainieren des Modesll
+        best_index = np.argmax(np.max(val_accuracies, axis=1))
+        best_epochs, best_batch_size, best_lr = hyperparams[best_index]
+        best_model_name = f"_model_{best_epochs}_{best_batch_size}_{best_lr}.h5"
+
+        print(f"The best model is: {self.model_type}{best_model_name}")
+
+    # Funktion zum Trainieren des Modesll
     def fit(self, augmentation=True, augmentation_factor=1):
         print('\n---- Training: ----')
 
@@ -131,12 +158,12 @@ class Model:
             # Training des Modells mit augmentierten Daten
             self.history = self.model.fit(x=augmented_x_train, y=augmented_y_train, epochs=self.epochs,
                                           batch_size=self.batch_size,
-                                          validation_data=(self.x_test, self.y_test))
+                                          validation_data=(self.x_test, self.y_test), callbacks=[self.lr_scheduler])
         else:
             # Training des Modells mit den vorhandenen Trainingsdaten
             self.history = self.model.fit(x=self.x_train, y=self.y_train, epochs=self.epochs,
                                           batch_size=self.batch_size,
-                                          validation_data=(self.x_test, self.y_test))
+                                          validation_data=(self.x_test, self.y_test), callbacks=[self.lr_scheduler])
 
         # Speichern des trainierten Modells
         self.model.save(os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, self.model_type + '_model.h5'))
@@ -319,4 +346,12 @@ class Model:
         augmented_labels = np.array(augmented_labels)
 
         return augmented_data, augmented_labels
+
+    # Definiere die Lernratenfunktion
+    @classmethod
+    def lr_schedule(cls, epoch, learning_rate):
+        if epoch < 5:
+            return learning_rate
+        else:
+            return learning_rate * tf.math.exp(-0.1)
 
