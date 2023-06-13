@@ -1,0 +1,5 @@
+original_data/
+**/.DS_Store
+cleaned_data/
+**/__pycache__
+Model/baseline/
