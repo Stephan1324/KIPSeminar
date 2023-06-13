@@ -36,7 +36,7 @@ class Model:
 
         folder_path = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
 
-        class_labels = ['KGT_noDefect_simplified', 'KGT_pitting_simplified']
+        class_labels = ['KGT_noDefect', 'KGT_pitting']
 
         if hsv:
             self.img_channels = 3
