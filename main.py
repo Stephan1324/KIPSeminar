@@ -13,7 +13,7 @@ if __name__ == "__main__":
     model_instance.split(test_size=0.2, normalize=True, hsv=True)
     model_instance.model_building()
     # model_instance.grid_search(epochs=[1, 2], batch_size=[32])
-    model_instance.fit(online_augmentation=True, augmentation_factor=4)
+    model_instance.fit(augmentation=True, augmentation_factor=4)
     model_instance.evaluate()
     model_instance.predict_image(img_number=60, hsv=True)
 

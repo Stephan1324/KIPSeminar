@@ -120,12 +120,12 @@ class Model:
         plt.show()
 
     # Funktion zum trainieren des Modesll
-    def fit(self, online_augmentation=True, augmentation_factor=1):
+    def fit(self, augmentation=True, augmentation_factor=1):
         print('\n---- Training: ----')
 
-        # Funktion zur Aktivierung der Online-Datenaugmentierung
-        if online_augmentation:
-            print('     ..... Online Augmentation!')
+        # Funktion zur Aktivierung der Datenaugmentierung
+        if augmentation:
+            print('     ..... Augmentation!')
             # Generieren von augmentierten Daten mithilfe von ImageDataGenerator
             augmented_x_train, augmented_y_train = Model.augment_data(self.x_train, self.y_train, augmentation_factor=augmentation_factor)
             # Training des Modells mit augmentierten Daten
