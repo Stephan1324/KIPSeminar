@@ -8,12 +8,15 @@ from CONFIG_GLOBAL import CONFIG_GLOBAL
 
 
 class Video_Deployment:
-    def __init__(self, model_type):
+    def __init__(self, model_type, epochs=None, batch_size=None, learning_rate=None):
         self.model_type = model_type
-
+        if epochs is None or batch_size is None or learning_rate is None:
+            self.model_specification = '_model.h5'
+        else:
+            self.model_specification = f"_model_{epochs}_{batch_size}_{learning_rate}.h5"
     def load_model(self):
         model = keras.models.load_model(
-            os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, self.model_type + '_model.h5'))
+            os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, self.model_type + self.model_specification))
         return model
 
     def normalize_window(self, window):
