@@ -6,10 +6,14 @@ class CONFIG_GLOBAL:
     PATH_ORIGINAL_DATA_FOLDER = os.path.join(dirname, 'original_data')
     PATH_CLEANED_DATA_FOLDER = os.path.join(dirname, 'cleaned_data')
 
-    PATH_ORIGINAL_DATA_NO_DEFECT_FOLDER = os.path.join(dirname, 'original_data', 'KGT_noDefect_simplified')
-    PATH_ORIGINAL_DATA_PITTING_FOLDER = os.path.join(dirname, 'original_data', 'KGT_pitting_simplified')
-    PATH_CLEANED_DATA_NO_DEFECT_FOLDER = os.path.join(dirname, 'cleaned_data', 'KGT_noDefect_simplified')
-    PATH_CLEANED_DATA_PITTING_FOLDER = os.path.join(dirname, 'cleaned_data', 'KGT_pitting_simplified')
+    PATH_ORIGINAL_DATA_NO_DEFECT_FOLDER = os.path.join(
+        dirname, 'original_data', 'KGT_noDefect_simplified')
+    PATH_ORIGINAL_DATA_PITTING_FOLDER = os.path.join(
+        dirname, 'original_data', 'KGT_pitting_simplified')
+    PATH_CLEANED_DATA_NO_DEFECT_FOLDER = os.path.join(
+        dirname, 'cleaned_data', 'KGT_noDefect_simplified')
+    PATH_CLEANED_DATA_PITTING_FOLDER = os.path.join(
+        dirname, 'cleaned_data', 'KGT_pitting_simplified')
 
     PATH_MODEL_FOLDER = os.path.join(dirname, 'Model')
     PATH_DEPLOYMENT_FOLDER = os.path.join(dirname, 'Deployment')
