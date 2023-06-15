@@ -1,6 +1,7 @@
 # from Model.Model import Model
 # from Deployment.Deployment import Video_Deployment
 from Data_Preparation.Data_cleaning import Data_cleaning
+from Deployment.Deployment import Video_Deployment
 
 if __name__ == "__main__":
     # Data Cleaning für pitting und no_defect Datensätze
@@ -43,6 +44,6 @@ if __name__ == "__main__":
         # model_instance.predict_image(img_number=60, hsv=True)
 
         # deployment auf dem Video
-        deployment = Video_Deployment(model_type='baseline')
+        deployment = Video_Deployment(model_type='baseline', epochs=10, batch_size=16, learning_rate=0.01)
         deployment.predict(normalize=True, hsv=True)
 
