@@ -20,6 +20,10 @@ class Test_Models:
         self.baseline = Test_Models.create_baseline(img_height=self.img_height, img_width=self.img_width,
                                                     img_channels=self.img_channels)
 
+        # Baseline Modell um Regularization erweitert aus VL
+        self.baseline_advanced = Test_Models.create_baseline_advanced(img_height=self.img_height, img_width=self.img_width,
+                                                    img_channels=self.img_channels)
+
         # Resnet50
         self.model_resnet_50 = Test_Models.create_resnet_50(img_height=self.img_height, img_width=self.img_width,
                                                             img_channels=self.img_channels, trainable_layer_count=12)
@@ -34,6 +38,7 @@ class Test_Models:
 
         # Dictionary der Modelle
         self.model_dict = {"baseline": self.baseline,
+                           "baseline_advanced": self.baseline_advanced,
                            "resnet_50": self.model_resnet_50,
                            "vgg_16": self.model_vgg_16,
                            "resnet_18": self.model_resnet_18
@@ -162,3 +167,24 @@ class Test_Models:
         model = ResNet18(input_shape)
 
         return model
+
+    @classmethod
+    def create_baseline_advanced(cls, img_height, img_width, img_channels, regularization_rate=0.001):
+        model = tf.keras.models.Sequential([
+            tf.keras.layers.Conv2D(32, (3, 3), activation='relu',
+                                   kernel_regularizer=tf.keras.regularizers.l2(regularization_rate),
+                                   input_shape=(img_height, img_width, img_channels)),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.MaxPooling2D(),
+            tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(64, activation='relu',
+                                  kernel_regularizer=tf.keras.regularizers.l2(regularization_rate)),
+            tf.keras.layers.Dense(1, activation='sigmoid')
+        ])
+        return model
+
+
