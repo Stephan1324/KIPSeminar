@@ -3,6 +3,7 @@ import os
 import cv2
 import numpy as np
 from tensorflow import keras
+from Model.Model import Model
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 
@@ -15,9 +16,14 @@ class Video_Deployment:
         else:
             self.model_specification = f"_model_{epochs}_{batch_size}_{learning_rate}.h5"
     def load_model(self):
-        model = keras.models.load_model(
-            os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, self.model_type + self.model_specification))
+        with keras.utils.custom_object_scope({'custom_loss': Model.custom_loss}):  # Register custom_loss
+            model = keras.models.load_model(
+                os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type,
+                             self.model_type + self.model_specification))
         return model
+        # model = keras.models.load_model(
+        #     os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type, self.model_type + self.model_specification))
+        # return model
 
     def normalize_window(self, window):
         window = window.astype('float32')
