@@ -9,6 +9,7 @@ from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from keras.callbacks import LearningRateScheduler
+from keras import regularizers
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 from Model.Test_Models import Test_Models
@@ -73,7 +74,7 @@ class Model:
 
         # Kompilieren des Modells mit Optimizer, Verlustfunktion und Metriken
         self.model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.initial_learning_rate),
-                           loss='binary_crossentropy',
+                           loss=Model.custom_loss,
                            metrics=['accuracy'])
 
         # Ausgabe einer Zusammenfassung des Modells
@@ -319,8 +320,8 @@ class Model:
     def augment_data(cls, x_train, y_train, augmentation_factor=1):
         datagen = ImageDataGenerator(
             rotation_range=20,
-            width_shift_range=0.1,
-            height_shift_range=0.1,
+            width_shift_range=0.2,
+            height_shift_range=0.2,
             shear_range=0.2,
             zoom_range=0.2,
             horizontal_flip=True,
@@ -352,6 +353,16 @@ class Model:
     def lr_schedule(cls, epoch, learning_rate):
         if epoch < 5:
             return learning_rate
-        else:
+        elif epoch < 7:
             return learning_rate * tf.math.exp(-0.1)
+        else:
+            return learning_rate / 2
+
+    @classmethod
+    def custom_loss(cls, y_true, y_pred, lambda_reg=0.001):
+        regularization_loss = tf.reduce_sum(tf.square(y_pred))
+        binary_crossentropy_loss = tf.keras.losses.binary_crossentropy(y_true, y_pred)
+        total_loss = binary_crossentropy_loss + lambda_reg * regularization_loss
+        return total_loss
+
 
