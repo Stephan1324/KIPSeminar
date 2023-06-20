@@ -6,7 +6,7 @@ import cv2
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 
 
-class Data_cleaning:
+class DataCleaning:
 
     def __init__(self, key_folder, length: int = 150, width: int = 150,
                  channels: int = 3):
@@ -19,7 +19,7 @@ class Data_cleaning:
         width(int): Number of pixles
         channels(int): Number of channels
         """
-
+        self.data_name = key_folder
         self.origin_data_path = CONFIG_GLOBAL.PATH_DICT_ORIGINAL[key_folder]
         self.cleaned_data_path = CONFIG_GLOBAL.PATH_DICT_CLEANED[key_folder]
         self.image_list = os.listdir(self.origin_data_path)
@@ -59,6 +59,7 @@ class Data_cleaning:
                 os.remove(file_path)
 
     def copy_clean_data(self):
+        print(f'\n---- Copy Clean {self.data_name} Data: ----')
 
         for file_name in self.seperate_image_list[0]:
             source_file = os.path.join(self.origin_data_path, file_name)
@@ -66,3 +67,5 @@ class Data_cleaning:
 
             if not os.path.exists(destination_file):
                 shutil.copy(source_file, destination_file)
+
+        print('     ..... DONE!')

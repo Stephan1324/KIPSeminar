@@ -18,7 +18,8 @@ class ModelManager:
     # Initialisierung der Klasse Model
     def __init__(self, batch_size: int = 32,
                  epochs: int = 10, initial_learningrate=0.01, hsv=False,
-                 img_height=150, img_width=150, img_channels=1):
+                 img_height=150, img_width=150, img_channels=1,
+                 class_labels=['KGT_noDefect', 'KGT_pitting']):
 
         self.batch_size = batch_size
         self.epochs = epochs
@@ -35,8 +36,7 @@ class ModelManager:
         # Fix default Parameters
         self.lr_scheduler = LearningRateScheduler(self.lr_schedule, verbose=1)
         self.data_directory = CONFIG_GLOBAL.PATH_CLEANED_DATA_FOLDER
-        self.class_labels = [
-            'KGT_noDefect_simplified', 'KGT_pitting_simplified']
+        self.class_labels = class_labels
 
         self.model = None
         self.model_type = None
@@ -45,8 +45,6 @@ class ModelManager:
         self.y_train = []
         self.x_test = []
         self.y_test = []
-        self.test_train_data = [self.x_train,
-                                self.y_train, self.x_test, self.y_test]
 
     # Funktion zum einlesen der Daten und Train/Test Split
     def split(self, x_images, labels, test_size=0.2):
@@ -57,9 +55,14 @@ class ModelManager:
         y_encoded = encoder.fit_transform(labels)
 
         # Aufteilung der Daten in Trainings- und Testdaten
-        self.test_train_data = train_test_split(x_images, y_encoded,
-                                                test_size=test_size,
-                                                random_state=42)
+        x_tr, x_te, y_tr, y_te = train_test_split(x_images, y_encoded,
+                                                  test_size=test_size,
+                                                  random_state=42)
+        self.x_train = x_tr
+        self.y_train = y_tr
+        self.x_test = x_te
+        self.y_test = y_te
+
         print('     ..... Fertig!')
 
     # Funktion zum Aufbau des Models
@@ -167,7 +170,6 @@ class ModelManager:
             # Generieren von augmentierten Daten
             # mithilfe von ImageDataGenerator
             augmented_x_train, augmented_y_train = self.augment_data(
-                self.x_train, self.y_train,
                 augmentation_factor=augmentation_factor)
             # Training des Modells mit augmentierten Daten
             self.history = self.model.fit(x=augmented_x_train,
@@ -338,7 +340,7 @@ class ModelManager:
 
         return np.array(x_total), np.array(labels)
 
-    def augment_data(self, x_train, y_train, augmentation_factor=1):
+    def augment_data(self, augmentation_factor=1):
         datagen = ImageDataGenerator(
             rotation_range=20,
             width_shift_range=0.2,
@@ -352,9 +354,9 @@ class ModelManager:
         augmented_data = []
         augmented_labels = []
 
-        for i in range(len(x_train)):
-            x = x_train[i]
-            y = y_train[i]
+        for i in range(len(self.x_train)):
+            x = self.x_train[i]
+            y = self.y_train[i]
             # Das Bild wird in die Form (1, Höhe, Breite, Kanäle) umgeformt
             x = x.reshape((1,) + x.shape)
 

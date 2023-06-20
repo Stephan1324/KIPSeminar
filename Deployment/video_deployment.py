@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 from tensorflow import keras
-from Model.model_manager import ModelManager
+from models.model_manager import ModelManager
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 
@@ -20,7 +20,7 @@ class VideoDeployment:
         # Register custom_loss
         with keras.utils.custom_object_scope({'custom_loss': ModelManager.custom_loss}):
             model = keras.models.load_model(
-                os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type,
+                os.path.join(CONFIG_GLOBAL.PATH_MODELS_FOLDER, self.model_type,
                              self.model_type + self.model_specification))
         return model
         # model = keras.models.load_model(

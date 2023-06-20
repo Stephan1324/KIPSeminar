@@ -1,4 +1,4 @@
-from Model.model_manager import ModelManager
+from models.model_manager import ModelManager
 from keras.layers import Input, Conv2D, MaxPooling2D, BatchNormalization, \
     GlobalAveragePooling2D, Dense, ReLU, Add
 from keras.models import Model
@@ -8,9 +8,10 @@ class ModelResnet18(ModelManager):
 
     def __init__(self, batch_size: int = 32,
                  epochs: int = 10, initial_learningrate=0.01, hsv=False,
+                 class_labels=['KGT_noDefect', 'KGT_pitting'],
                  img_height=150, img_width=150, img_channels=1):
         super().__init__(batch_size, epochs, initial_learningrate, hsv,
-                         img_height, img_width, img_channels)
+                         img_height, img_width, img_channels, class_labels)
 
         self.input_shape = (img_height, img_width, img_channels)
         self.model_type = 'resnet_18'
