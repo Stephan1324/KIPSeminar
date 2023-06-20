@@ -3,22 +3,24 @@ import os
 import cv2
 import numpy as np
 from tensorflow import keras
-from Model.Model import Model
+from models.model_manager import ModelManager
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 
 
-class Video_Deployment:
+class VideoDeployment:
     def __init__(self, model_type, epochs=None, batch_size=None, learning_rate=None):
         self.model_type = model_type
         if epochs is None or batch_size is None or learning_rate is None:
             self.model_specification = '_model.h5'
         else:
             self.model_specification = f"_model_{epochs}_{batch_size}_{learning_rate}.h5"
+
     def load_model(self):
-        with keras.utils.custom_object_scope({'custom_loss': Model.custom_loss}):  # Register custom_loss
+        # Register custom_loss
+        with keras.utils.custom_object_scope({'custom_loss': ModelManager.custom_loss}):
             model = keras.models.load_model(
-                os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER, self.model_type,
+                os.path.join(CONFIG_GLOBAL.PATH_MODELS_FOLDER, self.model_type,
                              self.model_type + self.model_specification))
         return model
         # model = keras.models.load_model(
@@ -73,13 +75,15 @@ class Video_Deployment:
                 break
 
             # Extract the specified window from the frame
-            window = frame[window_y:window_y + window_height, window_x:window_x + window_width]
+            window = frame[window_y:window_y + window_height,
+                           window_x:window_x + window_width]
 
             # cv2.imshow('Window', window)
             # cv2.waitKey(0)
 
             # Normalize the window
-            normalized_window = self.preprocess_window(window, hsv=hsv, normalize=normalize)
+            normalized_window = self.preprocess_window(
+                window, hsv=hsv, normalize=normalize)
 
             # Convert the window to match the input shape of the model
             input_window = np.expand_dims(normalized_window, axis=0)
@@ -100,7 +104,8 @@ class Video_Deployment:
 
             # Display the prediction value over the window
             text = predicition_text + f' | Prediction: {prediction_value:.6f}'
-            cv2.putText(frame, text, (window_x - 150, window_y - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, text_color, 2)
+            cv2.putText(frame, text, (window_x - 150, window_y - 20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, text_color, 2)
 
             # Display the frame with results
             cv2.imshow('Video', frame)
