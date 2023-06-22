@@ -11,7 +11,7 @@ class Baseline(ModelManager):
         super().__init__(batch_size, epochs, initial_learningrate, hsv,
                          img_height, img_width, img_channels, class_labels)
 
-        self.input_shape = (img_height, img_width, img_channels)
+        self.input_shape = (img_height, img_width, self.img_channels)
         self.model_type = 'baseline'
         self.model = self.create_baseline()
 

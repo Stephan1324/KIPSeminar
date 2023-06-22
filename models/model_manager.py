@@ -31,7 +31,7 @@ class ModelManager:
         if hsv:
             self.img_channels = 3
         else:
-            self.img_channel = img_channels
+            self.img_channels = img_channels
 
         # Fix default Parameters
         self.lr_scheduler = LearningRateScheduler(self.lr_schedule, verbose=1)
@@ -125,7 +125,7 @@ class ModelManager:
 
             model_name = f"_model_{e}_{b}_{lr}.h5"
             self.model.save(
-                os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER,
+                os.path.join(CONFIG_GLOBAL.PATH_MODELS_FOLDER,
                              self.model_type, self.model_type + model_name))
             accuracy = self.model.history.history['accuracy']
             val_accuracy = self.model.history.history['val_accuracy']
@@ -190,7 +190,7 @@ class ModelManager:
                                           callbacks=[self.lr_scheduler])
 
         # Speichern des trainierten Modells
-        self.model.save(os.path.join(CONFIG_GLOBAL.PATH_MODEL_FOLDER,
+        self.model.save(os.path.join(CONFIG_GLOBAL.PATH_MODELS_FOLDER,
                         self.model_type, self.model_type + '_model.h5'))
 
         # Erstellen eines Plots zur Darstellung der Trainings- und

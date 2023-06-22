@@ -12,12 +12,12 @@ class BaselineAdvanced(ModelManager):
         super().__init__(batch_size, epochs, initial_learningrate, hsv,
                          img_height, img_width, img_channels, class_labels)
 
-        self.input_shape = (img_height, img_width, img_channels)
+        self.input_shape = (img_height, img_width, self.img_channels)
         self.regularization_rate = regularization_rate
         self.model_type = 'baseline_advanced'
-        self.model = self.create_baseline_advance()
+        self.model = self.create_baseline_advanced()
 
-    def create_baseline_advance(self):
+    def create_baseline_advanced(self):
         kernel_regularizer = tf.keras.regularizers.l2(self.regularization_rate)
         model = tf.keras.models.Sequential([
             tf.keras.layers.Conv2D(32, (3, 3), activation='relu',
