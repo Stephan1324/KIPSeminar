@@ -50,6 +50,7 @@ class ModelManager:
     def split(self, x_images, labels, test_size=0.2):
 
         print('\n---- Train/Test Split: ----')
+        print('     ..... Test Size: ' + str(test_size*100) + '%')
         # Label-Encoding der Etiketten
         encoder = LabelEncoder()
         y_encoded = encoder.fit_transform(labels)
@@ -64,7 +65,7 @@ class ModelManager:
         self.x_test = x_te
         self.y_test = y_te
 
-        print('     ..... Fertig!')
+        print('     ..... Done!')
 
     # Funktion zum Aufbau des Models
     def model_building(self):
@@ -164,10 +165,13 @@ class ModelManager:
     # Funktion zum Trainieren des Modesll
     def fit(self, augmentation=True, augmentation_factor=1):
         print('\n---- Training: ----')
+        print('     ..... Epochs: ' + str(self.epochs))
+        print('     ..... Batch Size: ' + str(self.batch_size))
+        print('     ..... Initial Learning Rate: ' + str(self.initial_learning_rate))
 
         # Funktion zur Aktivierung der Datenaugmentierung
         if augmentation:
-            print('     ..... Augmentation!')
+            print('     ..... Augmentation Factor: ' + str(augmentation_factor))
             # Generieren von augmentierten Daten
             # mithilfe von ImageDataGenerator
             augmented_x_train, augmented_y_train = self.augment_data(
@@ -196,7 +200,7 @@ class ModelManager:
         # Erstellen eines Plots zur Darstellung der Trainings- und
         # Validierungsgenauigkeit über die Epochen
         self.create_train_validation_plot()
-        print('     ..... DONE!')
+        print('     ..... Training DONE!')
 
     def evaluate(self):
         print('\n---- Evaluation of Test Data: ----')
@@ -204,11 +208,12 @@ class ModelManager:
         y_pred = self.model.predict(self.x_test)
 
         # Erstellen einer Konfusionsmatrix
+
         self.create_confusion_matrices(y_true=self.y_test, y_pred=y_pred)
 
         # Erstellen der ROC-Kurve
         self.create_roc_curve(y_true=self.y_test, y_pred=y_pred)
-        print('     ..... DONE!')
+        print('     ..... Evaluation DONE!')
 
     # Funktion zur Vorhersage auf einem einzelnen Bild
     def predict_image(self, img_number, hsv=True):
@@ -257,6 +262,7 @@ class ModelManager:
 
     # Methode zum Erstellen der Konfusionsmatrix
     def create_confusion_matrices(self, y_true, y_pred):
+        print('     ..... Create Confusion Matrix!')
         # Erstellen der Konfusionsmatrix
         y_pred_binary = (y_pred >= 0.5).astype(int)
         # Berechnen der Konfusionsmatrix
@@ -279,11 +285,13 @@ class ModelManager:
                 plt.text(j, i, format(cm_matrix[i, j], 'd'),
                          horizontalalignment="center",
                          color="white" if cm_matrix[i, j] > thresh else "black")
-
+        print('     ..... Done!')
         plt.show()
+
 
     # Methode zum Erstellen der ROC-Kurve
     def create_roc_curve(self, y_true, y_pred):
+        print('     ..... Create ROC Curve!')
         fpr, tpr, thresholds = roc_curve(y_true, y_pred)
         roc_auc = auc(fpr, tpr)
 
@@ -297,6 +305,7 @@ class ModelManager:
         plt.ylabel('Richtig-Positive Rate')
         plt.title('Receiver Operating Characteristic (ROC) Curve')
         plt.legend(loc="lower right")
+        print('     ..... Done!')
         plt.show()
 
     def normalize_data(self, x_images):
@@ -308,10 +317,13 @@ class ModelManager:
         x_images = (x_images - x_images.min()) / \
             (x_images.max() - x_images.min())
 
+        print('     ..... Done!')
+
         return x_images
 
     def load_classes(self):
         print('\n---- Load Classes: ----')
+        print('     ..... As HSV: ' + str(self.hsv))
         # Arrays für die Daten definieren
         x_total = []
         labels = []
@@ -370,6 +382,8 @@ class ModelManager:
 
         augmented_data = np.array(augmented_data)
         augmented_labels = np.array(augmented_labels)
+
+        print('     ..... Augmentation Done!')
 
         return augmented_data, augmented_labels
 
