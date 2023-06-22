@@ -19,8 +19,10 @@ class ModelManager:
     def __init__(self, batch_size: int = 32,
                  epochs: int = 10, initial_learningrate=0.01, hsv=False,
                  img_height=150, img_width=150, img_channels=1,
-                 class_labels=['KGT_noDefect', 'KGT_pitting']):
+                 class_labels=None):
 
+        if class_labels is None:
+            class_labels = ['KGT_noDefect', 'KGT_pitting']
         self.batch_size = batch_size
         self.epochs = epochs
         self.initial_learning_rate = initial_learningrate
@@ -50,7 +52,7 @@ class ModelManager:
     def split(self, x_images, labels, test_size=0.2):
 
         print('\n---- Train/Test Split: ----')
-        print('     ..... Test Size: ' + str(test_size*100) + '%')
+        print('     ..... Test Size: ' + str(test_size * 100) + '%')
         # Label-Encoding der Etiketten
         encoder = LabelEncoder()
         y_encoded = encoder.fit_transform(labels)
@@ -124,7 +126,7 @@ class ModelManager:
                            batch_size=b,
                            validation_data=(self.x_test, self.y_test))
 
-            model_name = f"_model_{e}_{b}_{lr}.h5"
+            model_name = f'_model_{e}_{b}_{lr}.h5'
             self.model.save(
                 os.path.join(CONFIG_GLOBAL.PATH_MODELS_FOLDER,
                              self.model_type, self.model_type + model_name))
@@ -158,9 +160,9 @@ class ModelManager:
 
         best_index = np.argmax(np.max(val_accuracies, axis=1))
         best_epochs, best_batch_size, best_lr = hyperparams[best_index]
-        best_model_name = f"_model_{best_epochs}_{best_batch_size}_{best_lr}.h5"
+        best_model_name = f'_model_{best_epochs}_{best_batch_size}_{best_lr}.h5'
 
-        print(f"The best model is: {self.model_type}{best_model_name}")
+        print(f'The best model is: {self.model_type}{best_model_name}')
 
     # Funktion zum Trainieren des Modesll
     def fit(self, augmentation=True, augmentation_factor=1):
@@ -168,10 +170,10 @@ class ModelManager:
         print('     ..... Epochs: ' + str(self.epochs))
         print('     ..... Batch Size: ' + str(self.batch_size))
         print('     ..... Initial Learning Rate: ' + str(self.initial_learning_rate))
+        print('     ..... Data Augmentation: ' + str(augmentation))
 
-        # Funktion zur Aktivierung der Datenaugmentierung
+        # Funktion zur Aktivierung der Data Augmentation
         if augmentation:
-            print('     ..... Augmentation Factor: ' + str(augmentation_factor))
             # Generieren von augmentierten Daten
             # mithilfe von ImageDataGenerator
             augmented_x_train, augmented_y_train = self.augment_data(
@@ -195,7 +197,7 @@ class ModelManager:
 
         # Speichern des trainierten Modells
         self.model.save(os.path.join(CONFIG_GLOBAL.PATH_MODELS_FOLDER,
-                        self.model_type, self.model_type + '_model.h5'))
+                                     self.model_type, self.model_type + '_model.h5'))
 
         # Erstellen eines Plots zur Darstellung der Trainings- und
         # Validierungsgenauigkeit über die Epochen
@@ -224,18 +226,19 @@ class ModelManager:
         img_test_label = self.y_test[img_num]
         if hsv:
             plt.imshow(img_test.reshape(self.img_height,
-                       self.img_width, self.img_channels))
+                                        self.img_width, self.img_channels))
         else:
             plt.imshow(img_test.reshape(150, 150), cmap='gray')
         # Vorhersage der Label-Wahrscheinlichkeit für das Bild
         pred_prob = self.model.predict(tf.expand_dims(img_test, axis=0))
-        print("Predicted=%s" % (pred_prob))
-        print("True Label: ", img_test_label)
+        print('     ..... Predicted=%s' % (pred_prob))
+        print('     ..... True Label: ', img_test_label)
         plt.show()
         print('     ..... DONE!')
 
     # Methode zum erstellen des train/validation plots
     def create_train_validation_plot(self):
+        print('     ..... Create Train/Validation Plot')
         acc = self.history.history['accuracy']
         val_acc = self.history.history['val_accuracy']
 
@@ -258,6 +261,7 @@ class ModelManager:
         plt.plot(epochs_range, val_loss, label='Validation Loss')
         plt.legend(loc='upper right')
         plt.title('Training and Validation Loss')
+        print('     ..... DONE!')
         plt.show()
 
     # Methode zum Erstellen der Konfusionsmatrix
@@ -288,7 +292,6 @@ class ModelManager:
         print('     ..... Done!')
         plt.show()
 
-
     # Methode zum Erstellen der ROC-Kurve
     def create_roc_curve(self, y_true, y_pred):
         print('     ..... Create ROC Curve!')
@@ -315,7 +318,7 @@ class ModelManager:
         std = x_images.std()
         x_images = (x_images - mean) / std
         x_images = (x_images - x_images.min()) / \
-            (x_images.max() - x_images.min())
+                   (x_images.max() - x_images.min())
 
         print('     ..... Done!')
 
@@ -323,6 +326,7 @@ class ModelManager:
 
     def load_classes(self):
         print('\n---- Load Classes: ----')
+        print('     ..... Classes: ' + str(self.class_labels))
         print('     ..... As HSV: ' + str(self.hsv))
         # Arrays für die Daten definieren
         x_total = []
@@ -354,6 +358,7 @@ class ModelManager:
         return np.array(x_total), np.array(labels)
 
     def augment_data(self, augmentation_factor=1):
+        print('     ..... Augmentation Factor: ' + str(augmentation_factor))
         datagen = ImageDataGenerator(
             rotation_range=20,
             width_shift_range=0.2,
