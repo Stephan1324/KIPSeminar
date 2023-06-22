@@ -14,7 +14,7 @@ class VideoDeployment:
         if epochs is None or batch_size is None or learning_rate is None:
             self.model_specification = '_model.h5'
         else:
-            self.model_specification = f"_model_{epochs}_{batch_size}_{learning_rate}.h5"
+            self.model_specification = f'_model_{epochs}_{batch_size}_{learning_rate}.h5'
 
     def load_model(self):
         # Register custom_loss

@@ -1,4 +1,4 @@
-from deployment.video_deployment import VideoDeployment
+from Deployment.video_deployment import VideoDeployment
 
 if __name__ == "__main__":
 

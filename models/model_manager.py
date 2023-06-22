@@ -1,14 +1,16 @@
 import os
 
 import cv2
-import matplotlib.pyplot as plt
+import random
 import numpy as np
 import tensorflow as tf
-from keras.preprocessing.image import ImageDataGenerator
-from sklearn.metrics import confusion_matrix, roc_curve, auc
-from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
 from sklearn.preprocessing import LabelEncoder
 from keras.callbacks import LearningRateScheduler
+from sklearn.model_selection import train_test_split
+from keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import confusion_matrix, roc_curve, auc
 
 from CONFIG_GLOBAL import CONFIG_GLOBAL
 
@@ -359,6 +361,8 @@ class ModelManager:
 
     def augment_data(self, augmentation_factor=1):
         print('     ..... Augmentation Factor: ' + str(augmentation_factor))
+        np.random.seed(42)
+        random.seed(42)
         datagen = ImageDataGenerator(
             rotation_range=20,
             width_shift_range=0.2,
