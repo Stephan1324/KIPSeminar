@@ -84,7 +84,7 @@ class ModelManager:
 
         # Ausgabe einer Zusammenfassung des Modells
         # self.model.summary()
-        print('     ..... used model is:', self.model_type)
+        print('     ..... Used Model is:', self.model_type)
         print('     ..... DONE!')
 
     def grid_search(self, augmentation_factor=1, epochs=None, batch_size=None,
