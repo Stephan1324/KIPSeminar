@@ -16,7 +16,7 @@ class ModelResnet50(ModelManager):
         super().__init__(batch_size, epochs, initial_learningrate, hsv,
                          img_height, img_width, img_channels, class_labels)
 
-        self.input_shape = (img_height, img_width, img_channels)
+        self.input_shape = (img_height, img_width, self.img_channels)
         self.trainable_layer_count = trainable_layer_count
         self.model_type = 'resnet_50'
         self.model = self.create_resnet_50()
