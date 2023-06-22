@@ -57,7 +57,8 @@ class ModelManager:
         # Aufteilung der Daten in Trainings- und Testdaten
         x_tr, x_te, y_tr, y_te = train_test_split(x_images, y_encoded,
                                                   test_size=test_size,
-                                                  random_state=42)
+                                                  random_state=42,
+                                                  stratify=y_encoded)
         self.x_train = x_tr
         self.y_train = y_tr
         self.x_test = x_te
