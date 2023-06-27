@@ -43,7 +43,7 @@ class VideoDeployment:
             window = cv2.cvtColor(window, cv2.COLOR_BGR2GRAY)
 
         # Normalize the window
-        window = window / 255.0
+        # window = window / 255.0
         if normalize:
             window = self.normalize_window(window=window)
 
