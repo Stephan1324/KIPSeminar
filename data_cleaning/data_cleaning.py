@@ -48,6 +48,12 @@ class DataCleaning:
         seperate_image_list = [images_of_same_dimension,
                                images_of_different_dimension]
 
+        dimension_same = len(seperate_image_list[0])
+        dimension_different = len(seperate_image_list[1])
+
+        print('Bilder mit gleicher Dimension:' + str(dimension_same))
+        print('Bilder mit abweichender Dimension:' + str(dimension_different))
+
         return seperate_image_list
 
     def delete_cleaned_data(self):
