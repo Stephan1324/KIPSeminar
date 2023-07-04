@@ -5,7 +5,7 @@ if __name__ == "__main__":
 
     class_labels = ['KGT_noDefect_simplified', 'KGT_pitting_simplified']
 
-    model_instance = Baseline(epochs=10,
+    model_instance = Baseline(epochs=3,
                               batch_size=16, initial_learningrate=0.01,
                               class_labels=class_labels, hsv=True)
 
@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     model_instance.model_building()
 
-    model_instance.fit(augmentation=True, augmentation_factor=4)
+    model_instance.fit(augmentation=True, augmentation_factor=1)
 
     model_instance.evaluate()
 

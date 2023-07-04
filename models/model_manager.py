@@ -82,16 +82,14 @@ class ModelManager:
             loss='binary_crossentropy',
             metrics=['accuracy'])
 
-
         # Ausgabe einer Zusammenfassung des Modells
         # self.model.summary()
         print('     ..... Used Model is:', self.model_type)
         print('     ..... DONE!')
 
-
     # Methode zum durchführen einer Grid Search mit unterschiedlichen BatchSizes und Learning Rates
     # Anzahl der Epochen ist fixiert
-    def grid_search(self, augmentation_factor=1,epochs=10, batch_sizes=None, learning_rates=None):
+    def grid_search(self, augmentation_factor=1, epochs=10, batch_sizes=None, learning_rates=None):
         if batch_sizes is None:
             batch_sizes = [32, 16]
         if learning_rates is None:
@@ -106,7 +104,7 @@ class ModelManager:
 
         for i, batch_size in enumerate(batch_sizes):
             for j, learning_rate in enumerate(learning_rates):
-                #self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+                # self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
                 self.model.compile(optimizer=tf.keras.optimizers.RMSprop(
                     learning_rate=self.initial_learning_rate),
                     loss='binary_crossentropy',
@@ -118,11 +116,8 @@ class ModelManager:
                 self.model.fit(augmented_x_train, augmented_y_train, epochs=epochs, batch_size=batch_size,
                                validation_data=(self.x_test, self.y_test))
 
-
-
                 accuracy = self.model.history.history['val_accuracy'][-1]
                 grid[i, j] = accuracy
-
 
                 print('Trainingsergebnis: ' + str(i) + str(j))
                 print('Batch Size:', batch_size)
@@ -160,6 +155,7 @@ class ModelManager:
             # mithilfe von ImageDataGenerator
             augmented_x_train, augmented_y_train = self.augment_data(
                 augmentation_factor=augmentation_factor)
+            augmented_x_train, augmented_y_train = self.balance_dataset(X=augmented_x_train, y=augmented_y_train)
             # Training des Modells mit augmentierten Daten
             self.history = self.model.fit(x=augmented_x_train,
                                           y=augmented_y_train,
@@ -168,7 +164,7 @@ class ModelManager:
                                           validation_data=(
                                               self.x_test, self.y_test)
                                           )
-                                          #callbacks=[self.lr_scheduler])
+            # callbacks=[self.lr_scheduler])
         else:
             # Training des Modells mit den vorhandenen Trainingsdaten
             self.history = self.model.fit(x=self.x_train, y=self.y_train,
@@ -345,12 +341,13 @@ class ModelManager:
         np.random.seed(42)
         random.seed(42)
         datagen = ImageDataGenerator(
-            rotation_range=90,
-            width_shift_range=0.5,
-            height_shift_range=0.3,
-            shear_range=0.3,
-            zoom_range=0.3,
+            rotation_range=30,
+            width_shift_range=0.3,
+            height_shift_range=0.2,
+            # shear_range=0.2,
+            # zoom_range=0.1,
             horizontal_flip=True,
+            vertical_flip=True,
             fill_mode='nearest'
         )
 
@@ -379,12 +376,12 @@ class ModelManager:
 
     # Definiere die Lernratenfunktion
     def lr_schedule(self, epoch, learning_rate):
-        if epoch < 40:
+        if epoch < 20:  # 10:
             return learning_rate
-        elif epoch < 50:
-            return 0.00001
-        else:
+        elif epoch < 20:
             return learning_rate * tf.math.exp(-0.1)
+        else:
+            return learning_rate * 0.8
 
     def custom_loss(self, y_true, y_pred, lambda_reg=0.001):
         regularization_loss = tf.reduce_sum(tf.square(y_pred))
@@ -392,3 +389,24 @@ class ModelManager:
             y_true, y_pred)
         total_loss = binary_crossentropy_loss + lambda_reg * regularization_loss
         return total_loss
+
+    def balance_dataset(self, X, y):
+        positive_indices = np.where(y == 1)[0]
+        negative_indices = np.where(y == 0)[0]
+        print('Balance Dataset:')
+        num_positive = len(positive_indices)
+        num_negative = len(negative_indices)
+
+        if num_positive > num_negative:
+            # Undersampling positive examples
+            undersampled_indices = np.random.choice(positive_indices, size=int(num_negative * 0.4), replace=False)
+            balanced_indices = np.concatenate((negative_indices, undersampled_indices))
+        else:
+            # Oversampling negative examples
+            oversampled_indices = np.random.choice(negative_indices, size=int(num_positive / 0.6), replace=True)
+            balanced_indices = np.concatenate((positive_indices, oversampled_indices))
+
+        balanced_X = X[balanced_indices]
+        balanced_y = y[balanced_indices]
+
+        return balanced_X, balanced_y

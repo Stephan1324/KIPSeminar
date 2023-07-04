@@ -14,7 +14,7 @@ class BaselineImproved(ModelManager):
       self.model = self.create_improved_model()
 
   def create_improved_model(self):
-      l2_regularization = tf.keras.regularizers.l2(0.1)  # Adjust the regularization strength as needed
+      l2_regularization = tf.keras.regularizers.l2(0.1)
 
       model = tf.keras.models.Sequential([
 
@@ -28,15 +28,15 @@ class BaselineImproved(ModelManager):
           tf.keras.layers.MaxPooling2D((2, 2)),
           tf.keras.layers.MaxPooling2D(),
 
-          tf.keras.layers.Conv2D(128, (3, 3), activation='relu', kernel_regularizer=l2_regularization),
-          tf.keras.layers.Dropout(0.2),
+          tf.keras.layers.Conv2D(128, (3, 3), activation='tanh', kernel_regularizer=l2_regularization),
+          tf.keras.layers.Dropout(0.3),
           tf.keras.layers.BatchNormalization(),
           tf.keras.layers.MaxPooling2D((2, 2)),
 
           tf.keras.layers.Flatten(),
 
-          tf.keras.layers.Dense(64, activation='relu'),
-          tf.keras.layers.Dropout(0.6),
+          tf.keras.layers.Dense(64, activation=tf.keras.layers.LeakyReLU(alpha=0.1)),
+          tf.keras.layers.Dropout(0.5),
 
           tf.keras.layers.Dense(1, activation='sigmoid')  # Binary classification with sigmoid activation
       ])
