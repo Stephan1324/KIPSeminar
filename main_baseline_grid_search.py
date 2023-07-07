@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     model_instance.split(x_images, labels)
 
-    model_instance.grid_search(augmentation_factor=1, epochs=10,
-                               batch_sizes=[16, 32],
-                               learning_rates=[0.0001, 0.00001])
+    model_instance.grid_search(augmentation_factor=1, epochs=20,
+                               batch_sizes=[8, 16, 32],
+                               learning_rates=[0.0001, 0.00001, 0.000001])
 
