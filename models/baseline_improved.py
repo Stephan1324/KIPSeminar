@@ -1,4 +1,4 @@
-from model_manager import ModelManager
+from models.model_manager import ModelManager
 import tensorflow as tf
 
 
@@ -14,7 +14,7 @@ class BaselineImproved(ModelManager):
       self.model = self.create_improved_model()
 
   def create_improved_model(self):
-      l2_regularization = tf.keras.regularizers.l2(0.1)
+      l2_regularization = tf.keras.regularizers.l2(0.12)
 
       model = tf.keras.models.Sequential([
 
@@ -42,4 +42,3 @@ class BaselineImproved(ModelManager):
       ])
 
       return model
-

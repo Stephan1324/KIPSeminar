@@ -105,7 +105,7 @@ class ModelManager:
         for i, batch_size in enumerate(batch_sizes):
             for j, learning_rate in enumerate(learning_rates):
                 # self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-                self.model.compile(optimizer=tf.keras.optimizers.RMSprop(
+                self.model.compile(optimizer=tf.keras.optimizers.Adam(
                     learning_rate=self.initial_learning_rate),
                     loss='binary_crossentropy',
                     metrics=['accuracy'])
@@ -155,16 +155,16 @@ class ModelManager:
             # mithilfe von ImageDataGenerator
             augmented_x_train, augmented_y_train = self.augment_data(
                 augmentation_factor=augmentation_factor)
-            augmented_x_train, augmented_y_train = self.balance_dataset(X=augmented_x_train, y=augmented_y_train)
+            # augmented_x_train, augmented_y_train = self.balance_dataset(X=augmented_x_train,y=augmented_y_train)
             # Training des Modells mit augmentierten Daten
             self.history = self.model.fit(x=augmented_x_train,
                                           y=augmented_y_train,
                                           epochs=self.epochs,
                                           batch_size=self.batch_size,
                                           validation_data=(
-                                              self.x_test, self.y_test)
-                                          )
-            # callbacks=[self.lr_scheduler])
+                                              self.x_test, self.y_test),
+                                          # )
+                                          callbacks=[self.lr_scheduler])
         else:
             # Training des Modells mit den vorhandenen Trainingsdaten
             self.history = self.model.fit(x=self.x_train, y=self.y_train,
@@ -376,10 +376,10 @@ class ModelManager:
 
     # Definiere die Lernratenfunktion
     def lr_schedule(self, epoch, learning_rate):
-        if epoch < 20:  # 10:
+        if epoch < 21:
             return learning_rate
-        elif epoch < 20:
-            return learning_rate * tf.math.exp(-0.1)
+        elif epoch < 30:
+            return 0.00001  # learning_rate * tf.math.exp(-0.1)
         else:
             return learning_rate * 0.8
 
@@ -399,11 +399,11 @@ class ModelManager:
 
         if num_positive > num_negative:
             # Undersampling positive examples
-            undersampled_indices = np.random.choice(positive_indices, size=int(num_negative * 0.4), replace=False)
+            undersampled_indices = np.random.choice(positive_indices, size=int(num_negative), replace=False)
             balanced_indices = np.concatenate((negative_indices, undersampled_indices))
         else:
             # Oversampling negative examples
-            oversampled_indices = np.random.choice(negative_indices, size=int(num_positive / 0.6), replace=True)
+            oversampled_indices = np.random.choice(negative_indices, size=int(num_positive), replace=True)
             balanced_indices = np.concatenate((positive_indices, oversampled_indices))
 
         balanced_X = X[balanced_indices]
